@@ -19461,6 +19461,7 @@ GameObject:
   - component: {fileID: 212334846230632610}
   - component: {fileID: 95529108578994780}
   - component: {fileID: 58802698708281874}
+  - component: {fileID: 114900000000000001}
   m_Layer: 0
   m_Name: Key
   m_TagString: Untagged
@@ -19573,6 +19574,28 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &114900000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795441750572142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc93d5840381f48f98861bd30ee34b00, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  inventoryKey: Key1
+  layers:
+    serializedVersion: 2
+    m_Bits: 8192
+  disableOnEnter: 1
+  collider: {fileID: 58802698708281874}
+  clip: {fileID: 0}
+  dataSettings:
+    dataTag: ThreeKeyLevelPickup
+    persistenceType: 0
 --- !u!1 &1989362093448838
 GameObject:
   m_ObjectHideFlags: 0

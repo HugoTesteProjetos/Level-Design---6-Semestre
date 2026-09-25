@@ -10,7 +10,17 @@ namespace Gamekit2D
     [RequireComponent(typeof(Collider2D))]
     public class EnemyBehaviour : MonoBehaviour
     {
-        static Collider2D[] s_ColliderCache = new Collider2D[16];
+        public enum ProjectileArc
+        {
+            Highest,
+            LowestEnergy,
+            MostDirect
+        }
+
+        const int k_ColliderCacheSize = 16;
+        const int k_RaycastHitCacheSize = 8;
+
+        static Collider2D[] s_ColliderCache = new Collider2D[k_ColliderCacheSize];
 
         public Vector3 moveVector { get { return m_MoveVector; } }
         public Transform Target { get { return m_Target; } }
@@ -21,6 +31,15 @@ namespace Gamekit2D
         [Header("Movement")]
         public float speed;
         public float gravity = 10.0f;
+        [Min(0.0f)]
+        [Tooltip("Amount removed from the collider radius when checking walls, allowing small floor bumps to be ignored.")]
+        public float obstacleCastInset = 0.2f;
+        [Min(0.01f)]
+        [Tooltip("Radius of the probe used to detect a ledge in front of the enemy.")]
+        public float ledgeProbeRadius = 0.1f;
+        [Min(0.0f)]
+        [Tooltip("Extra distance below the collider checked by the ledge probe.")]
+        public float ledgeProbeExtraDistance = 0.2f;
 
         [Header("References")]
         [Tooltip("If the enemy will be using ranged attack, set a prefab of the projectile it should use")]
@@ -49,6 +68,32 @@ namespace Gamekit2D
         [Header("Range Attack Data")]
         [Tooltip("From where the projectile are spawned")]
         public Transform shootingOrigin;
+        [Min(1)]
+        [Tooltip("Number of projectiles preallocated for this enemy.")]
+        public int projectilePoolSize = 8;
+        [Min(0.01f)]
+        [Tooltip("Maximum launch speed used to calculate the projectile trajectory.")]
+        public float projectileSpeed = 30.0f;
+        [Min(0.0f)]
+        [Tooltip("Minimum time in seconds between ranged attacks.")]
+        public float fireCooldown = 1.0f;
+        [Tooltip("Trajectory used when more than one ballistic solution is available.")]
+        public ProjectileArc projectileArc = ProjectileArc.LowestEnergy;
+        [Range(0.0f, 1.0f)]
+        [Tooltip("Upward component used when the target cannot be reached ballistically.")]
+        public float unreachableTargetVerticalAim = 0.7f;
+
+        [Header("Damage Reaction")]
+        [Tooltip("Horizontal magnitude and vertical force applied when this enemy is hit.")]
+        public Vector2 hitKnockback = new Vector2(2.0f, 3.0f);
+        [Tooltip("Horizontal magnitude and vertical force applied when this enemy dies.")]
+        public Vector2 deathKnockback = new Vector2(4.0f, 2.0f);
+        [Min(0.0f)]
+        public float cameraShakeAmplitude = 0.15f;
+        [Min(0.0f)]
+        public float cameraShakeDuration = 0.3f;
+        [Range(0.0f, 1.0f)]
+        public float damagedFlickerAlpha = 0.2f;
 
         [Header("Audio")]
         public RandomAudioPlayer shootingAudio;
@@ -77,7 +122,7 @@ namespace Gamekit2D
         protected Bounds m_LocalBounds;
         protected Vector3 m_LocalDamagerPosition;
 
-        protected RaycastHit2D[] m_RaycastHitCache = new RaycastHit2D[8];
+        protected RaycastHit2D[] m_RaycastHitCache = new RaycastHit2D[k_RaycastHitCacheSize];
         protected ContactFilter2D m_Filter;
 
         protected Coroutine m_FlickeringCoroutine = null;
@@ -105,7 +150,7 @@ namespace Gamekit2D
             m_OriginalColor = m_SpriteRenderer.color;
 
             if(projectilePrefab != null)
-                m_BulletPool = BulletPool.GetObjectPool(projectilePrefab.gameObject, 8);
+                m_BulletPool = BulletPool.GetObjectPool(projectilePrefab.gameObject, projectilePoolSize);
 
             m_SpriteForward = spriteFaceLeft ? Vector2.left : Vector2.right;
             if (m_SpriteRenderer.flipX) m_SpriteForward = -m_SpriteForward;
@@ -176,15 +221,17 @@ namespace Gamekit2D
         public bool CheckForObstacle(float forwardDistance)
         {
             //we circle cast with a size sligly small than the collider height. That avoid to collide with very small bump on the ground
-            if (Physics2D.CircleCast(m_Collider.bounds.center, m_Collider.bounds.extents.y - 0.2f, m_SpriteForward, forwardDistance, m_Filter.layerMask.value))
+            float obstacleRadius = Mathf.Max(0.01f, m_Collider.bounds.extents.y - obstacleCastInset);
+            if (Physics2D.CircleCast(m_Collider.bounds.center, obstacleRadius, m_SpriteForward, forwardDistance, m_Filter.layerMask.value))
             {
                 return true;
             }
 
             Vector3 castingPosition = (Vector2)(transform.position + m_LocalBounds.center) + m_SpriteForward * m_LocalBounds.extents.x;
-            Debug.DrawLine(castingPosition, castingPosition + Vector3.down * (m_LocalBounds.extents.y + 0.2f));
+            float ledgeProbeDistance = m_LocalBounds.extents.y + ledgeProbeExtraDistance;
+            Debug.DrawLine(castingPosition, castingPosition + Vector3.down * ledgeProbeDistance);
 
-            if (!Physics2D.CircleCast(castingPosition, 0.1f, Vector2.down, m_LocalBounds.extents.y + 0.2f, m_CharacterController2D.groundedLayerMask.value))
+            if (!Physics2D.CircleCast(castingPosition, ledgeProbeRadius, Vector2.down, ledgeProbeDistance, m_CharacterController2D.groundedLayerMask.value))
             {
                 return true;
             }
@@ -366,7 +413,7 @@ namespace Gamekit2D
             m_Animator.SetTrigger(m_HashShootingPara);
             shootingAudio.PlayRandomSound();
 
-            m_FireTimer = 1.0f;
+            m_FireTimer = fireCooldown;
         }
 
         public void Shooting()
@@ -387,8 +434,6 @@ namespace Gamekit2D
         //This will give the velocity vector needed to give to the bullet rigidbody so it reach the given target from the origin.
         private Vector3 GetProjectilVelocity(Vector3 target, Vector3 origin)
         {
-            const float projectileSpeed = 30.0f;
-
             Vector3 velocity = Vector3.zero;
             Vector3 toTarget = target - origin;
 
@@ -402,7 +447,7 @@ namespace Gamekit2D
                 velocity = toTarget;
                 velocity.y = 0;
                 velocity.Normalize();
-                velocity.y = 0.7f;
+                velocity.y = unreachableTargetVerticalAim;
 
                 velocity *= projectileSpeed;
                 return velocity;
@@ -421,18 +466,15 @@ namespace Gamekit2D
 
             float T = 0;
 
-            // 0 = highest, 1 = lowest, 2 = most direct
-            int shotType = 1;
-
-            switch (shotType)
+            switch (projectileArc)
             {
-                case 0:
+                case ProjectileArc.Highest:
                     T = T_max;
                     break;
-                case 1:
+                case ProjectileArc.LowestEnergy:
                     T = T_lowEnergy;
                     break;
-                case 2:
+                case ProjectileArc.MostDirect:
                     T = T_min;
                     break;
                 default:
@@ -446,10 +488,10 @@ namespace Gamekit2D
 
         public void Die(Damager damager, Damageable damageable)
         {
-            Vector2 throwVector = new Vector2(0, 2.0f);
+            Vector2 throwVector = new Vector2(0, deathKnockback.y);
             Vector2 damagerToThis = damager.transform.position - transform.position;
         
-            throwVector.x = Mathf.Sign(damagerToThis.x) * -4.0f;
+            throwVector.x = Mathf.Sign(damagerToThis.x) * -deathKnockback.x;
             SetMoveVector(throwVector);
 
             m_Animator.SetTrigger(m_HashDeathPara);
@@ -459,7 +501,7 @@ namespace Gamekit2D
             m_Dead = true;
             m_Collider.enabled = false;
 
-            CameraShaker.Shake(0.15f, 0.3f);
+            CameraShaker.Shake(cameraShakeAmplitude, cameraShakeDuration);
         }
 
         public void Hit(Damager damager, Damageable damageable)
@@ -469,10 +511,10 @@ namespace Gamekit2D
 
             m_Animator.SetTrigger(m_HashHitPara);
 
-            Vector2 throwVector = new Vector2(0, 3.0f);
+            Vector2 throwVector = new Vector2(0, hitKnockback.y);
             Vector2 damagerToThis = damager.transform.position - transform.position;
 
-            throwVector.x = Mathf.Sign(damagerToThis.x) * -2.0f;
+            throwVector.x = Mathf.Sign(damagerToThis.x) * -hitKnockback.x;
             m_MoveVector = throwVector;
 
             if (m_FlickeringCoroutine != null)
@@ -482,7 +524,7 @@ namespace Gamekit2D
             }
 
             m_FlickeringCoroutine = StartCoroutine(Flicker(damageable));
-            CameraShaker.Shake(0.15f, 0.3f);
+            CameraShaker.Shake(cameraShakeAmplitude, cameraShakeDuration);
         }
 
 
@@ -493,7 +535,7 @@ namespace Gamekit2D
             float sinceLastChange = 0.0f;
 
             Color transparent = m_OriginalColor;
-            transparent.a = 0.2f;
+            transparent.a = damagedFlickerAlpha;
             int state = 1;
 
             m_SpriteRenderer.color = transparent;

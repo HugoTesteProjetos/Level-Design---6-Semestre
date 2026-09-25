@@ -10,7 +10,7 @@ namespace Gamekit2D
         [Serializable]
         public class InputButton
         {
-            public InputAction action;
+            [NonSerialized] public InputAction action;
 
             public bool Down { get; protected set; }
             public bool Held { get; protected set; }
@@ -30,8 +30,11 @@ namespace Gamekit2D
             bool m_AfterFixedUpdateHeld;
             bool m_AfterFixedUpdateUp;
 
-            public InputButton(string actionName, Key keyboardKey, string gamepadBinding)
+            public void Initialize(string actionName, Key keyboardKey, string gamepadBinding)
             {
+                if (action != null)
+                    return;
+
                 action = new InputAction(actionName, InputActionType.Button);
                 action.AddBinding($"<Keyboard>/{keyboardKey.ToString().ToLower()}");
                 if (!string.IsNullOrEmpty(gamepadBinding))
@@ -40,6 +43,14 @@ namespace Gamekit2D
 
             public void Get(bool fixedUpdateHappened)
             {
+                if (action == null)
+                {
+                    Down = false;
+                    Held = false;
+                    Up = false;
+                    return;
+                }
+
                 if (!m_Enabled)
                 {
                     Down = false;
@@ -117,12 +128,17 @@ namespace Gamekit2D
 
             public void EnableAction() => action?.Enable();
             public void DisableAction() => action?.Disable();
+            public void DisposeAction()
+            {
+                action?.Dispose();
+                action = null;
+            }
         }
 
         [Serializable]
         public class InputAxis
         {
-            public InputAction action;
+            [NonSerialized] public InputAction action;
 
             public float Value { get; protected set; }
             public bool ReceivingInput { get; protected set; }
@@ -134,20 +150,35 @@ namespace Gamekit2D
             protected bool m_Enabled = true;
             protected bool m_GettingInput = true;
 
-            public InputAxis(string actionName, Key positiveKey, Key negativeKey, string gamepadPositiveBinding, string gampadNegativeBinding)
+            public void Initialize(string actionName, Key positiveKey, Key negativeKey,
+                string gamepadPositiveBinding, string gamepadNegativeBinding)
             {
-                action = new InputAction(actionName, InputActionType.Value, expectedControlType: "Axis");
-                
-                var composite = action.AddCompositeBinding("1DAxis");
-                composite.With("Positive", $"<Keyboard>/{positiveKey.ToString().ToLower()}");
-                composite.With("Negative", $"<Keyboard>/{negativeKey.ToString().ToLower()}");
+                if (action != null)
+                    return;
 
-                if (!string.IsNullOrEmpty(gamepadPositiveBinding))
-                    action.AddBinding(gamepadPositiveBinding);
+                action = new InputAction(actionName, InputActionType.Value, expectedControlType: "Axis");
+
+                action.AddCompositeBinding("1DAxis")
+                    .With("Positive", $"<Keyboard>/{positiveKey.ToString().ToLower()}")
+                    .With("Negative", $"<Keyboard>/{negativeKey.ToString().ToLower()}");
+
+                if (!string.IsNullOrEmpty(gamepadPositiveBinding) && !string.IsNullOrEmpty(gamepadNegativeBinding))
+                {
+                    action.AddCompositeBinding("1DAxis")
+                        .With("Positive", gamepadPositiveBinding)
+                        .With("Negative", gamepadNegativeBinding);
+                }
             }
 
             public void Get()
             {
+                if (action == null)
+                {
+                    Value = 0f;
+                    ReceivingInput = false;
+                    return;
+                }
+
                 if (!m_Enabled)
                 {
                     Value = 0f;
@@ -194,6 +225,12 @@ namespace Gamekit2D
             public void DisableAction() 
             {
                 action?.Disable();
+            }
+
+            public void DisposeAction()
+            {
+                action?.Dispose();
+                action = null;
             }
         }
 

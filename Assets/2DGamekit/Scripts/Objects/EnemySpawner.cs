@@ -44,7 +44,7 @@ namespace Gamekit2D
             }
 
             m_CurrentSpawnedEnemyCount = spawnCount;
-            m_TotalSpawnedEnemyCount += concurrentEnemiesToBeSpawned;
+            m_TotalSpawnedEnemyCount += spawnCount;
             m_SpawnWait = new WaitForSeconds(spawnDelay);
         }
 

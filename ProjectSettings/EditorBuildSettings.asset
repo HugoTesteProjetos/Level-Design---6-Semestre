@@ -31,12 +31,12 @@ EditorBuildSettings:
     guid: ebc4647ff02971c4ba1b207af066be4d
   - enabled: 1
     path: Assets/NewScene.unity
-    guid: a341347ecfade124f817cac8ea56a209
-  - enabled: 1
-    path: Assets/NewScene.unity
     guid: 2fc9838ba9e5fb64786bd40e28f5f623
   - enabled: 1
     path: Assets/HugoLoop1.unity
     guid: a949bb3fafc681d4b969b762e1c17f77
+  - enabled: 1
+    path: Assets/Level Teste.unity
+    guid: 0c9b3204526564b4eb1762150b5e9f41
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

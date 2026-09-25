@@ -29,6 +29,22 @@ public class MissileGolem : MonoBehaviour
     public float delay = 2;
     public float beamDelay, grenadeDelay, lightningDelay, cleanupDelay, deathDelay;
 
+    [Header("Attack Selection Weights")]
+    [Min(1)] public int walkWeight = 1;
+    [Min(1)] public int laserWeight = 6;
+    [Min(1)] public int lightningWeight = 4;
+    [Min(1)] public int grenadeWeight = 4;
+
+    [Header("Boss Tuning")]
+    [Min(0.0f)] public float walkAnimationDelay = 0.2f;
+    [Min(0.0f)] public float musicFadeDuration = 2.0f;
+    public float laserLaunchForce = 1000.0f;
+    public float targetHeightOffset = 1.0f;
+    public float targetMovementPrediction = 0.5f;
+    [Min(0.0f)] public float shieldInitialScale = 0.01f;
+    [Min(0.0f)] public float shieldScaleSpeed = 1.0f;
+    [Min(1)] public int grenadeStartingRound = 2;
+
     public GameObject shield, beamLaser;
     public GunnerProjectile projectile;
     public Grenade grenade;
@@ -111,10 +127,10 @@ public class MissileGolem : MonoBehaviour
                 BT.Call(ActivateShield),
                 BT.Wait(delay),
                 BT.While(ShieldIsUp).OpenBranch(
-                    BT.RandomSequence(new int[] { 1, 6, 4, 4 }).OpenBranch(
+                    BT.RandomSequence(new int[] { walkWeight, laserWeight, lightningWeight, grenadeWeight }).OpenBranch(
                         BT.Root().OpenBranch(
                             BT.Trigger(animator, "Walk"),
-                            BT.Wait(0.2f),
+                            BT.Wait(walkAnimationDelay),
                             BT.WaitForAnimatorState(animator, "Idle")
                             ),
                         BT.Repeat(laserStrikeCount).OpenBranch(
@@ -160,7 +176,7 @@ public class MissileGolem : MonoBehaviour
 
         BackgroundMusicPlayer.Instance.ChangeMusic(bossMusic);
         BackgroundMusicPlayer.Instance.Play();
-        BackgroundMusicPlayer.Instance.Unmute(2.0f);
+        BackgroundMusicPlayer.Instance.Unmute(musicFadeDuration);
 
         //we aggregate the total health to set the slider to the proper value
         //(as the boss is actually "killed" every round and regenerated, we can't use directly its current health)
@@ -195,7 +211,7 @@ public class MissileGolem : MonoBehaviour
         shieldUpAudioPlayer.PlayRandomSound();
 
         shield.SetActive(true);
-        shield.transform.localScale = Vector3.one * 0.01f;
+        shield.transform.localScale = Vector3.one * shieldInitialScale;
 
         shieldSlider.GetComponent<Animator>().Play("BossShieldActivate");
 
@@ -214,7 +230,7 @@ public class MissileGolem : MonoBehaviour
         var p = Instantiate(projectile);
         var dir = -beamLaser.transform.right;
         p.transform.position = beamLaser.transform.position;
-        p.initialForce = new Vector3(dir.x, dir.y) * 1000;
+        p.initialForce = new Vector3(dir.x, dir.y) * laserLaunchForce;
     }
 
     void ThrowGrenade()
@@ -228,7 +244,7 @@ public class MissileGolem : MonoBehaviour
 
     bool GrenadeEnabled()
     {
-        return round > 1;
+        return round >= grenadeStartingRound;
     }
 
     void ActivateLightning()
@@ -260,12 +276,12 @@ public class MissileGolem : MonoBehaviour
         {
             Vector2 targetMovement = (Vector2)target.position - m_PreviousTargetPosition;
             targetMovement.Normalize();
-            Vector3 targetPos = target.position + Vector3.up * (1.0f + targetMovement.y * 0.5f);
+            Vector3 targetPos = target.position + Vector3.up * (targetHeightOffset + targetMovement.y * targetMovementPrediction);
 
             beamLaser.transform.rotation = Quaternion.RotateTowards(beamLaser.transform.rotation, Quaternion.Euler(0, 0, Vector3.SignedAngle(Vector3.left, targetPos - beamLaser.transform.position, Vector3.forward)), laserTrackingSpeed * Time.deltaTime);
         }
 
-        shield.transform.localScale = Vector3.Lerp(shield.transform.localScale, originShieldScale, Time.deltaTime);
+        shield.transform.localScale = Vector3.Lerp(shield.transform.localScale, originShieldScale, shieldScaleSpeed * Time.deltaTime);
     }
 
     void Cleanup()

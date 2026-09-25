@@ -14,21 +14,24 @@ namespace Gamekit2D
 
         public bool HaveControl { get { return m_HaveControl; }}
 
-        public InputButton Jump = new InputButton("Jump", Key.Space, "<Gamepad>/buttonSouth");
-        public InputButton MeleeAttack = new InputButton("MeleeAttack", Key.K, "<Gamepad>/buttonWest");
-        public InputButton RangedAttack = new InputButton("RangedAttack", Key.O, "<Gamepad>/buttonEast");
-        public InputButton Interact = new InputButton("Interact", Key.E, "<Gamepad>/buttonNorth");
-        public InputButton Pause = new InputButton("Pause", Key.Escape, "<Gamepad>/start");
-        public InputAxis Horizontal = new InputAxis("Horizontal", Key.D, Key.A, "<Gamepad>/leftStick/right", "<Gamepad>/leftStick/left");
-        public InputAxis Vertical = new InputAxis("Vertical", Key.W, Key.S, "<Gamepad>/leftStick/up", "<Gamepad>/leftStick/down");
+        public InputButton Jump = new InputButton();
+        public InputButton MeleeAttack = new InputButton();
+        public InputButton RangedAttack = new InputButton();
+        public InputButton Interact = new InputButton();
+        public InputButton Pause = new InputButton();
+        public InputAxis Horizontal = new InputAxis();
+        public InputAxis Vertical = new InputAxis();
 
         [HideInInspector] public DataSettings dataSettings;
 
         protected bool m_HaveControl = true;
         protected bool m_DebugMenuOpen = false;
+        bool m_ActionsInitialized;
 
         void Awake()
         {
+            InitializeActions();
+
             if (s_Instance == null)
                 s_Instance = this;
             else
@@ -41,6 +44,8 @@ namespace Gamekit2D
 
         private void OnEnable()
         {
+            InitializeActions();
+
             if (s_Instance == null)
                 s_Instance = this;
             else if (s_Instance != this)
@@ -57,6 +62,11 @@ namespace Gamekit2D
             PersistentDataManager.UnregisterPersister(this);
             DisableAllActions();
             s_Instance = null;
+        }
+
+        void OnDestroy()
+        {
+            DisposeActions();
         }
 
         protected override void GetInputs(bool fixedUpdateHappened)
@@ -186,6 +196,44 @@ namespace Gamekit2D
             Jump.EnableAction();
             Horizontal.EnableAction();
             Vertical.EnableAction();
+        }
+
+        void InitializeActions()
+        {
+            if (m_ActionsInitialized)
+                return;
+
+            Jump ??= new InputButton();
+            MeleeAttack ??= new InputButton();
+            RangedAttack ??= new InputButton();
+            Interact ??= new InputButton();
+            Pause ??= new InputButton();
+            Horizontal ??= new InputAxis();
+            Vertical ??= new InputAxis();
+
+            Jump.Initialize("Jump", Key.Space, "<Gamepad>/buttonSouth");
+            MeleeAttack.Initialize("MeleeAttack", Key.K, "<Gamepad>/buttonWest");
+            RangedAttack.Initialize("RangedAttack", Key.O, "<Gamepad>/buttonEast");
+            Interact.Initialize("Interact", Key.E, "<Gamepad>/buttonNorth");
+            Pause.Initialize("Pause", Key.Escape, "<Gamepad>/start");
+            Horizontal.Initialize("Horizontal", Key.D, Key.A,
+                "<Gamepad>/leftStick/right", "<Gamepad>/leftStick/left");
+            Vertical.Initialize("Vertical", Key.W, Key.S,
+                "<Gamepad>/leftStick/up", "<Gamepad>/leftStick/down");
+
+            m_ActionsInitialized = true;
+        }
+
+        void DisposeActions()
+        {
+            Jump?.DisposeAction();
+            MeleeAttack?.DisposeAction();
+            RangedAttack?.DisposeAction();
+            Interact?.DisposeAction();
+            Pause?.DisposeAction();
+            Horizontal?.DisposeAction();
+            Vertical?.DisposeAction();
+            m_ActionsInitialized = false;
         }
 
         void DisableAllActions()

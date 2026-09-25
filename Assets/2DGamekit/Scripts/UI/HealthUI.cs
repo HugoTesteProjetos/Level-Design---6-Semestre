@@ -9,6 +9,7 @@ namespace Gamekit2D
         public GameObject healthIconPrefab;
 
         protected Animator[] m_HealthIconAnimators;
+        protected bool m_InitializationStarted;
 
         protected readonly int m_HashActivePara = Animator.StringToHash ("Active");
         protected readonly int m_HashInactiveState = Animator.StringToHash ("Inactive");
@@ -16,8 +17,16 @@ namespace Gamekit2D
 
         IEnumerator Start ()
         {
-            if(representedDamageable == null)
+            if (!m_InitializationStarted)
+                yield return InitializeHearts();
+        }
+
+        IEnumerator InitializeHearts ()
+        {
+            if (representedDamageable == null || healthIconPrefab == null)
                 yield break;
+
+            m_InitializationStarted = true;
 
             yield return null;
             
@@ -40,6 +49,15 @@ namespace Gamekit2D
                     m_HealthIconAnimators[i].SetBool (m_HashActivePara, false);
                 }
             }
+        }
+
+        // Kept for compatibility with scenes created with older versions of the kit.
+        public void SetInitialHeartCount (Damageable damageable)
+        {
+            representedDamageable = damageable;
+
+            if (!m_InitializationStarted && isActiveAndEnabled)
+                StartCoroutine(InitializeHearts());
         }
 
         public void ChangeHitPointUI (Damageable damageable)
