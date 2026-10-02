@@ -15,7 +15,7 @@ namespace Gamekit2D
         {
             m_MonoBehaviour.EnableMeleeAttack();
             if (m_MonoBehaviour.dashWhileAirborne)
-                m_MonoBehaviour.SetHorizontalMovement(m_MonoBehaviour.meleeAttackDashSpeed * m_MonoBehaviour.GetFacing());
+                m_MonoBehaviour.SetHorizontalMovement(m_MonoBehaviour.airborneMeleeAttackDashSpeed * m_MonoBehaviour.GetFacing());
         }
 
         public override void OnSLStateNoTransitionUpdate (Animator animator, AnimatorStateInfo stateInfo, int layerIndex)

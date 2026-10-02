@@ -51,6 +51,9 @@ namespace Gamekit2D
         public float viewDirection = 0.0f;
         [Range(0.0f, 360.0f)]
         public float viewFov;
+
+        [Min(0.0f)]
+        [Tooltip("Maximum distance at which this enemy can detect and keep tracking the player.")]
         public float viewDistance;
         [Tooltip("Time in seconds without the target in the view cone before the target is considered lost from sight")]
         public float timeBeforeTargetLost = 3.0f;

@@ -175,7 +175,7 @@ MonoBehaviour:
     type: 3}
   viewDirection: 0
   viewFov: 300
-  viewDistance: 6
+  viewDistance: 10
   timeBeforeTargetLost: 2
   meleeRange: 3
   meleeDamager: {fileID: 0}
@@ -183,6 +183,7 @@ MonoBehaviour:
   attackDash: 0
   attackForce: {x: 0, y: 0}
   shootingOrigin: {fileID: 4329106020219736}
+  fireCooldown: 0.65
   shootingAudio: {fileID: 114467981819792882}
   meleeAttackAudio: {fileID: 0}
   dieAudio: {fileID: 114378202263870322}
