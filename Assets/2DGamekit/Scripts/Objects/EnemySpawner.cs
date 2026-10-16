@@ -30,12 +30,6 @@ namespace Gamekit2D
 
         void Start()
         {
-            for (int i = 0; i < initialPoolCount; i++)
-            {
-                Enemy newEnemy = CreateNewPoolObject();
-                pool.Add(newEnemy);
-            }
-
             int spawnCount = Mathf.Min(totalEnemiesToBeSpawned - m_TotalSpawnedEnemyCount, concurrentEnemiesToBeSpawned);
 
             for (int i = 0; i < spawnCount; i++)

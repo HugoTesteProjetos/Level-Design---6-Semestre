@@ -20,7 +20,8 @@ namespace Gamekit2D
             if(cam == null)
                 throw new UnityException("Cinemachine Camera was not found, default follow cannot be assigned.");
 
-            //we manually do a "find", because otherwise, GameObject.Find seem to return object from a "preview scene" breaking the camera as the object is not the right one
+            // Search only inside this scene so preview objects are ignored. The recursive
+            // lookup also supports levels that organise the player below hierarchy groups.
             var rootObj = gameObject.scene.GetRootGameObjects();
             GameObject cameraFollowGameObject = null;
             foreach (var go in rootObj)
@@ -29,9 +30,15 @@ namespace Gamekit2D
                     cameraFollowGameObject = go;
                 else
                 {
-                    var t = go.transform.Find(cameraFollowGameObjectName);
-                    if (t != null)
-                        cameraFollowGameObject = t.gameObject;
+                    var transforms = go.GetComponentsInChildren<Transform>(true);
+                    foreach (var child in transforms)
+                    {
+                        if (child.name != cameraFollowGameObjectName)
+                            continue;
+
+                        cameraFollowGameObject = child.gameObject;
+                        break;
+                    }
                 }
 
                 if (cameraFollowGameObject != null) break;

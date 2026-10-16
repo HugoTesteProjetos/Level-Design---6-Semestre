@@ -14,6 +14,7 @@ namespace Gamekit2D
             {
                 TObject newPoolObject = CreateNewPoolObject();
                 pool.Add(newPoolObject);
+                newPoolObject.Sleep();
             }
         }
 
@@ -52,6 +53,7 @@ namespace Gamekit2D
             {
                 TObject newPoolObject = CreateNewPoolObject();
                 pool.Add(newPoolObject);
+                newPoolObject.Sleep();
             }
         }
 
