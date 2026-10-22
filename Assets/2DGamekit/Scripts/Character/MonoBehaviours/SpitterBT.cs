@@ -22,8 +22,8 @@ namespace Gamekit2D
                 BT.If(() => { return m_EnemyBehaviour.Target != null; }).OpenBranch(
                     BT.Call(m_EnemyBehaviour.CheckTargetStillVisible),
                     BT.Call(m_EnemyBehaviour.OrientToTarget),
-                    BT.Trigger(m_Animator, "Shooting"),
                     BT.Call(m_EnemyBehaviour.RememberTargetPos),
+                    BT.Trigger(m_Animator, "Shooting"),
                     BT.WaitForAnimatorState(m_Animator, "Attack")
                 ),
 

@@ -12,7 +12,8 @@ namespace Gamekit2D
         {
             m_MonoBehaviour.ForceNotHoldingGun();
             m_MonoBehaviour.EnableMeleeAttack();
-            m_MonoBehaviour.SetHorizontalMovement(m_MonoBehaviour.meleeAttackDashSpeed * m_MonoBehaviour.GetFacing());
+            if (m_MonoBehaviour.dashWhileGrounded)
+                m_MonoBehaviour.SetHorizontalMovement(m_MonoBehaviour.meleeAttackDashSpeed * m_MonoBehaviour.GetFacing());
         }
 
         public override void OnSLStateNoTransitionUpdate (Animator animator, AnimatorStateInfo stateInfo, int layerIndex)

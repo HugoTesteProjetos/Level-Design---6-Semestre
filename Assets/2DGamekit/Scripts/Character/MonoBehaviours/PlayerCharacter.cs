@@ -44,12 +44,19 @@ namespace Gamekit2D
         [Tooltip("Horizontal speed applied when a melee attack starts on the ground.")]
         public float meleeAttackDashSpeed = 5f;
 
+        [Tooltip("Enables the horizontal impulse when a melee attack starts on the ground.")]
+        public bool dashWhileGrounded = true;
+
         [Tooltip("Enables the horizontal impulse when a melee attack starts in the air.")]
         public bool dashWhileAirborne = false;
 
         [Min(0f)]
         [Tooltip("Horizontal speed applied by an airborne melee attack. This is separate from the ground attack dash.")]
         public float airborneMeleeAttackDashSpeed = 6f;
+
+        [Min(0f)]
+        [Tooltip("Brief invulnerability granted when a melee attack begins.")]
+        public float meleeAttackInvulnerabilityDuration = 0.25f;
 
         public RandomAudioPlayer footstepAudioPlayer;
         public RandomAudioPlayer landingAudioPlayer;
@@ -757,6 +764,7 @@ namespace Gamekit2D
         {
             meleeDamager.EnableDamage();
             meleeDamager.disableDamageAfterHit = true;
+            damageable.EnableInvulnerabilityFor(meleeAttackInvulnerabilityDuration);
             meleeAttackAudioPlayer.PlayRandomSound();
         }
 

@@ -10,6 +10,8 @@ namespace Gamekit2D
         public Animator doorAnimator;
         public string doorOpeningState = "DoorOpening";
         public string[] requiredKeys = { "Key1", "Key2", "Key3" };
+        public bool openOnlyWhenPlayerNearby = true;
+        [Min(0.1f)] public float doorOpenDistance = 7f;
 
         [Header("Completion")]
         public LayerMask playerLayers;
@@ -43,8 +45,26 @@ namespace Gamekit2D
             if (m_Inventory == null && PlayerCharacter.PlayerInstance != null)
                 m_Inventory = PlayerCharacter.PlayerInstance.inventoryController;
 
-            if (m_Inventory != null && HasAllRequiredKeys())
+            if (m_Inventory != null && HasAllRequiredKeys() && IsPlayerNearDoor())
                 OpenDoor();
+        }
+
+        bool IsPlayerNearDoor()
+        {
+            if (!openOnlyWhenPlayerNearby)
+                return true;
+
+            if (PlayerCharacter.PlayerInstance == null)
+                return false;
+
+            Vector2 doorPosition = transform.position;
+            if (doorAnimator != null)
+            {
+                Collider2D doorCollider = doorAnimator.GetComponentInChildren<Collider2D>();
+                doorPosition = doorCollider != null ? doorCollider.bounds.center : (Vector2)doorAnimator.transform.position;
+            }
+
+            return Vector2.Distance(PlayerCharacter.PlayerInstance.transform.position, doorPosition) <= doorOpenDistance;
         }
 
         bool HasAllRequiredKeys()

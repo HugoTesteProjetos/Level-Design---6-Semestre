@@ -55,6 +55,9 @@ namespace Gamekit2D
         [Min(0.0f)]
         [Tooltip("Maximum distance at which this enemy can detect and keep tracking the player.")]
         public float viewDistance;
+        [Min(0.0f)]
+        [Tooltip("Maximum vertical distance used for detection. Zero disables this extra limit.")]
+        public float maxTargetVerticalDistance;
         [Tooltip("Time in seconds without the target in the view cone before the target is considered lost from sight")]
         public float timeBeforeTargetLost = 3.0f;
 
@@ -289,6 +292,9 @@ namespace Gamekit2D
                 return;
             }
 
+            if (maxTargetVerticalDistance > 0f && Mathf.Abs(dir.y) > maxTargetVerticalDistance)
+                return;
+
             Vector3 testForward = Quaternion.Euler(0, 0, spriteFaceLeft ? Mathf.Sign(m_SpriteForward.x) * -viewDirection : Mathf.Sign(m_SpriteForward.x) * viewDirection) * m_SpriteForward;
 
             float angle = Vector3.Angle(testForward, dir);
@@ -324,7 +330,8 @@ namespace Gamekit2D
 
             Vector3 toTarget = m_Target.position - transform.position;
 
-            if (toTarget.sqrMagnitude < viewDistance * viewDistance)
+            bool insideVerticalRange = maxTargetVerticalDistance <= 0f || Mathf.Abs(toTarget.y) <= maxTargetVerticalDistance;
+            if (toTarget.sqrMagnitude < viewDistance * viewDistance && insideVerticalRange)
             {
                 Vector3 testForward = Quaternion.Euler(0, 0, spriteFaceLeft ? -viewDirection : viewDirection) * m_SpriteForward;
                 if (m_SpriteRenderer.flipX) testForward.x = -testForward.x;
@@ -421,6 +428,9 @@ namespace Gamekit2D
 
         public void Shooting()
         {
+            if (m_Target != null)
+                m_TargetShootPosition = m_Target.position;
+
             Vector2 shootPosition = shootingOrigin.transform.localPosition;
 
             //if we are flipped compared to normal, we need to localy flip the shootposition too

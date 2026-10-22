@@ -32,8 +32,10 @@ namespace Gamekit2D
         SerializedProperty m_FlickeringDurationProp;
     
         SerializedProperty m_MeleeAttackDashSpeedProp;
+        SerializedProperty m_DashWhileGroundedProp;
         SerializedProperty m_DashWhileAirborneProp;
         SerializedProperty m_AirborneMeleeAttackDashSpeedProp;
+        SerializedProperty m_MeleeAttackInvulnerabilityDurationProp;
     
         SerializedProperty m_ShotsPerSecondProp;
         SerializedProperty m_BulletSpeedProp;
@@ -89,8 +91,10 @@ namespace Gamekit2D
         readonly GUIContent m_FlickeringDurationContent = new GUIContent("Flicking Duration", "When the player is hurt she becomes invulnerable for a short time and the SpriteRenderer flickers on and off to indicate this.  This field is the duration in seconds the SpriteRenderer stays either on or off whilst flickering.  To adjust the duration of invulnerability see the Damageable component.");
 
         readonly GUIContent m_MeleeAttackDashSpeedContent = new GUIContent("Ground Attack Dash Speed", "Horizontal speed applied when a melee attack starts on the ground.");
+        readonly GUIContent m_DashWhileGroundedContent = new GUIContent("Enable Ground Attack Dash", "Turn off to attack on the ground without a horizontal impulse.");
         readonly GUIContent m_DashWhileAirborneContent = new GUIContent("Enable Airborne Attack Dash", "Turn off to keep the airborne attack without its horizontal impulse.");
         readonly GUIContent m_AirborneMeleeAttackDashSpeedContent = new GUIContent("Airborne Attack Dash Speed", "Horizontal speed applied once when the airborne melee attack begins.");
+        readonly GUIContent m_MeleeAttackInvulnerabilityDurationContent = new GUIContent("Attack Invulnerability Duration", "Brief invulnerability, in seconds, granted when a melee attack starts.");
 
         readonly GUIContent m_ShotsPerSecondContent = new GUIContent("Shots Per Second");
         readonly GUIContent m_BulletSpeedContent = new GUIContent("Bullet Speed");
@@ -148,8 +152,10 @@ namespace Gamekit2D
             m_FlickeringDurationProp = serializedObject.FindProperty ("flickeringDuration");
 
             m_MeleeAttackDashSpeedProp = serializedObject.FindProperty("meleeAttackDashSpeed");
+            m_DashWhileGroundedProp = serializedObject.FindProperty("dashWhileGrounded");
             m_DashWhileAirborneProp = serializedObject.FindProperty ("dashWhileAirborne");
             m_AirborneMeleeAttackDashSpeedProp = serializedObject.FindProperty("airborneMeleeAttackDashSpeed");
+            m_MeleeAttackInvulnerabilityDurationProp = serializedObject.FindProperty("meleeAttackInvulnerabilityDuration");
 
             m_ShotsPerSecondProp = serializedObject.FindProperty("shotsPerSecond");
             m_BulletSpeedProp = serializedObject.FindProperty("bulletSpeed");
@@ -250,7 +256,13 @@ namespace Gamekit2D
 
             if (m_MeleeSettingsFoldout)
             {
-                EditorGUILayout.PropertyField(m_MeleeAttackDashSpeedProp, m_MeleeAttackDashSpeedContent);
+                EditorGUILayout.PropertyField(m_DashWhileGroundedProp, m_DashWhileGroundedContent);
+                if (m_DashWhileGroundedProp.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_MeleeAttackDashSpeedProp, m_MeleeAttackDashSpeedContent);
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUILayout.PropertyField(m_DashWhileAirborneProp, m_DashWhileAirborneContent);
 
                 if (m_DashWhileAirborneProp.boolValue)
@@ -259,6 +271,8 @@ namespace Gamekit2D
                     EditorGUILayout.PropertyField(m_AirborneMeleeAttackDashSpeedProp, m_AirborneMeleeAttackDashSpeedContent);
                     EditorGUI.indentLevel--;
                 }
+
+                EditorGUILayout.PropertyField(m_MeleeAttackInvulnerabilityDurationProp, m_MeleeAttackInvulnerabilityDurationContent);
             }
 
             EditorGUI.indentLevel--;

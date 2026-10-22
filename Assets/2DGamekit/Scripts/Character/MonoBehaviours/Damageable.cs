@@ -77,6 +77,15 @@ namespace Gamekit2D
             m_InulnerabilityTimer = ignoreTimer ? float.MaxValue : invulnerabilityDuration;
         }
 
+        public void EnableInvulnerabilityFor(float duration)
+        {
+            if (duration <= 0f)
+                return;
+
+            m_Invulnerable = true;
+            m_InulnerabilityTimer = Mathf.Max(m_InulnerabilityTimer, duration);
+        }
+
         public void DisableInvulnerability()
         {
             m_Invulnerable = false;
