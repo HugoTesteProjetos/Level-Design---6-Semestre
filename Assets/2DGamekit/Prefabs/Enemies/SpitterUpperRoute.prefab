@@ -211,10 +211,10 @@ MonoBehaviour:
   projectilePrefab: {fileID: 114793620227127496, guid: 7a9b8f4adaceb7d469f3f02edc8472d5,
     type: 3}
   viewDirection: 0
-  viewFov: 180
-  viewDistance: 10
-  maxTargetVerticalDistance: 4.5
-  timeBeforeTargetLost: 0.35
+  viewFov: 220
+  viewDistance: 15
+  maxTargetVerticalDistance: 6.5
+  timeBeforeTargetLost: 0.75
   meleeRange: 2
   meleeDamager: {fileID: 0}
   contactDamager: {fileID: 114516403870706252}

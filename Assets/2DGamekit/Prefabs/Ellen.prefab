@@ -402,8 +402,8 @@ MonoBehaviour:
   flickeringDuration: 0.05
   meleeAttackDashSpeed: 15
   dashWhileGrounded: 0
-  dashWhileAirborne: 0
-  airborneMeleeAttackDashSpeed: 18
+  dashWhileAirborne: 1
+  airborneMeleeAttackDashSpeed: 3.5
   meleeAttackInvulnerabilityDuration: 0.25
   footstepAudioPlayer: {fileID: 114293955134965878}
   landingAudioPlayer: {fileID: 114437884384235768}

@@ -16,12 +16,14 @@ namespace Gamekit2D
         {
             m_EnemyBehaviour = GetComponent<EnemyBehaviour>();
             m_Animator = GetComponent<Animator>();
+            m_Ai = BT.Root();
 
             m_Ai.OpenBranch(
 
                 BT.If(() => { return m_EnemyBehaviour.Target != null; }).OpenBranch(
                     BT.Call(m_EnemyBehaviour.CheckTargetStillVisible),
                     BT.Call(m_EnemyBehaviour.OrientToTarget),
+                    BT.WaitForAnimatorState(m_Animator, "Attack"),
                     BT.Call(m_EnemyBehaviour.RememberTargetPos),
                     BT.Trigger(m_Animator, "Shooting"),
                     BT.WaitForAnimatorState(m_Animator, "Attack")
