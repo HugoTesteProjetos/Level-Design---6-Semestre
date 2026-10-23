@@ -212,7 +212,7 @@ MonoBehaviour:
     type: 3}
   viewDirection: 0
   viewFov: 220
-  viewDistance: 15
+  viewDistance: 20
   maxTargetVerticalDistance: 6.5
   timeBeforeTargetLost: 0.75
   meleeRange: 2
